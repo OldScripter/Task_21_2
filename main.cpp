@@ -26,7 +26,7 @@ struct Room
     RoomType roomType;
     float area;
 
-   explicit Room(RoomType roomType = UNKNOWN, float area = 10.0f)
+   explicit Room(RoomType roomType, float area)
     {
         this->area = area;
         this->roomType = roomType;
@@ -54,7 +54,7 @@ struct Floor
 
         for (int i = 0; i < roomCount; ++i)
         {
-            Room r;
+            Room r((RoomType)(rand() % 5), (float)(rand() % 25));
             rooms.push_back(r);
         }
     }
@@ -142,6 +142,16 @@ std::string getBuildingType(BuildingType bType)
     else return "NOT_DEFINED";
 }
 
+std::string getRoomType(RoomType rType)
+{
+    if (rType == LIVING_ROOM) return "LIVING_ROOM";
+    else if (rType == KITCHEN) return "KITCHEN";
+    else if (rType == BEDROOM) return "BEDROOM";
+    else if (rType == BATHROOM) return "BATHROOM";
+    else if (rType == CHILDREN_ROOM) return "CHILDREN_ROOM";
+    else return "UNKNOWN";
+}
+
 void printPlots(std::vector<Plot>& plots) {
     for (int i = 0; i < plots.size(); ++i) {
         std::cout << "Plot id: " << plots[i].id << " (area  " << plots[i].area << ", buildings "
@@ -149,11 +159,16 @@ void printPlots(std::vector<Plot>& plots) {
         for (int j = 0; j < plots[i].buildings.size(); ++j)
         {
             Building b = plots[i].buildings[j];
-            std::cout << "\t Building " << j << ": " << getBuildingType(b.buildingType) << ", area: " << b.area << ", oven: " << b.getWithOven() << "\n";
+            std::cout << "\t Building " << j + 1 << ": " << getBuildingType(b.buildingType) << ", floors " << b.floors.size() << ", area: " << b.area << ", oven: " << b.getWithOven() << "\n";
             for (int k = 0; k < b.floors.size(); ++k)
             {
                 Floor f = b.floors[k];
                 std::cout << "\t\t Floor " << k << ": ceiling height " << f.ceilingHeight << " m, rooms: " << f.rooms.size() << "\n";
+                for (int m = 0; m < f.rooms.size(); ++m)
+                {
+                    Room r = f.rooms[m];
+                    std::cout << "\t\t\t Room " << m + 1 << ": " << getRoomType(r.roomType) << ", area: " << r.area << "\n";
+                }
             }
         }
 
@@ -182,7 +197,11 @@ int main() {
                 b.setWithOven(rand() % 2);
             }
             if (b.getWithOven()) quantityOfOvens++;
-            int randomFloorsQuantity = rand() % 3 + 1; // from 1 to 3 floors
+            int randomFloorsQuantity = 1;
+            if (b.buildingType == LIVING_HOUSE)
+            {
+                randomFloorsQuantity = rand() % 3 + 1; // from 1 to 3 floors for living houses
+            }
             for (int k = 0; b.floors.size() < randomFloorsQuantity; ++k)
             {
                 float randomRoomsQuantity = rand() % 3 + 2; // 2 - 4 rooms
@@ -190,7 +209,7 @@ int main() {
                 Floor f(randomCeilingHeight, randomRoomsQuantity);
                 for (int m = 0; f.rooms.size() < randomRoomsQuantity; m++)
                 {
-                    RoomType randomRoomType = (RoomType)(rand() % 6);
+                    RoomType randomRoomType = (RoomType)(rand() % 5);
                     float randomRoomArea = rand() % long (b.area * 0.2) + (b.area * 0.1);
                     Room r(randomRoomType, randomRoomArea);
                     f.rooms.push_back(r);
